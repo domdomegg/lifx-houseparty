@@ -5,35 +5,16 @@ export class Strobe implements Transformer {
     key: string = Strobe.key;
 
     private interval: NodeJS.Timeout;
+    private t: number;
     
     handleBeat() {}
 
     setup(app: App) {
-        app.lights.forEach(light => {
-            const r = light.raw as any;
-            r.setColor({
-                color: {
-                    hue: 0,
-                    saturation: 0,
-                    brightness: 0,
-                    kelvin: 3500
-                }
-            }).then(() => {
-                r.lightSetWaveform({
-                    transient: 1,
-                    color: {
-                        hue: 0,
-                        saturation: 0,
-                        brightness: 1,
-                        kelvin: 3500
-                    },
-                    period: 50,
-                    cycles: 1e20,
-                    skew_ratio: 0.9,
-                    waveform: 4,
-                });
-            })
-        })
+        this.t = 0;
+        this.interval = setInterval(() => {
+            app.lights.forEach(light => light.setColor({ color: { hue: 0, saturation: 0, brightness: (this.t % 2) * 100 } }));
+            this.t++;
+        }, 250);
     }
 
     teardown(app: App) {

@@ -1,5 +1,4 @@
 import { Client as LifxClient, Light as LifxLight } from 'lifx-lan-client';
-import { Duplex } from 'stream';
 import { App, Light } from '../app';
 
 export class Lifx {

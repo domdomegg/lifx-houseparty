@@ -19,6 +19,7 @@ export class App {
 
     addLight(light: Light) {
         this.lights.push(light);
+        if (this.transformer.onLightConnect) this.transformer.onLightConnect(this, light);
     }
 
     setTransformer(key: string) {
@@ -55,9 +56,16 @@ export class App {
 
     startServer() {
         const app = express();
+        const bodyParser = require('body-parser');
+        app.use(bodyParser.json());
 
-        app.get('/', (req, res) => {
-            this.setTransformer(req.query.transformer as string);
+        app.put('/transformer', (req, res) => {
+            this.setTransformer(req.body.key);
+            res.send({ source: this.source.key, transformer: this.transformer.key });
+        });
+
+        app.post('/transformer/data', (req, res) => {
+            if (this.transformer.onData) this.transformer.onData(this, req.body);
             res.send({ source: this.source.key, transformer: this.transformer.key });
         });
 
@@ -79,18 +87,18 @@ interface Teardownable {
     teardown: (app: App) => void;
 }
 
-interface HSBKColor {
+export interface HSBKColor {
     hue: number;
     saturation: number;
     brightness: number;
     kelvin?: number;
 }
 
-type Waveform = 'SAW' | 'SINE' | 'HALF_SINE' | 'TRIANGLE' | 'PULSE';
+export type Waveform = 'SAW' | 'SINE' | 'HALF_SINE' | 'TRIANGLE' | 'PULSE';
 
 export interface Light {
     setColor(params: { color: HSBKColor, duration?: number, callback?: () => void }): void;
-    setWaveform(params: { fromColor?: HSBKColor, toColor: HSBKColor, transient: boolean, period: number, cycles: number, skewRatio: number, waveform: Waveform, callback?: () => void }): void;
+    setWaveform(params: { fromColor?: HSBKColor, toColor: HSBKColor, transient?: boolean, period: number, cycles?: number, skewRatio?: number, waveform: Waveform, callback?: () => void }): void;
 }
 
 export interface Source extends Setupable, Teardownable {
@@ -99,5 +107,8 @@ export interface Source extends Setupable, Teardownable {
 
 export interface Transformer extends Setupable, Teardownable {
     key: string;
-    handleBeat: () => void;
+    handleBeat?: (app: App) => void;
+    onLightConnect?: (app: App, light: Light) => void;
+    onLightDisconnect?: (app: App, light: Light) => void;
+    onData?: (app: App, data: any) => void;
 }

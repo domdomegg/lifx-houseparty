@@ -80,6 +80,8 @@ interface Teardownable {
 }
 
 export interface Light {
+    type: string;
+    raw?: any;
     set(value: { hue: number, saturation: number, brightness: number, duration?: number }, callback?: () => void): void;
 }
 

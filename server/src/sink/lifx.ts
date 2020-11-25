@@ -1,25 +1,30 @@
-import { Client as LifxClient, Light as LifxLight } from 'node-lifx';
+const client = require('node-lifx-lan');
 import { App, Light } from '../app';
 
 export class Lifx {
-    private client: LifxClient;
-
     setup(app: App) {
-        this.client = new LifxClient();
-        this.client.init();
-
-        this.client.on('light-new', (light) => {
-            app.addLight(transformLight(light));
-        })
+        client.discover({ wait: 5000 }).then((devices: any[]) => {
+            devices.forEach(device => {
+                app.addLight(transformLight(device));
+            })
+        });
     }
 
     teardown(app: App) {
-        this.client.destroy();
     }
 }
 
-const transformLight = (lifxLight: LifxLight): Light => ({
+const transformLight = (lifxLight: any): Light => ({
+    type: 'node-lifx-lan',
+    raw: lifxLight,
     set: ({ hue, saturation, brightness, duration }, callback) => {
-        lifxLight.color(hue, saturation, brightness, undefined, duration, callback);
+        const payload: any = { color: { hue: hue / 360, saturation: saturation / 100, brightness: brightness / 100 }};
+        if (duration) payload.duration = duration;
+
+        if (callback) {
+            lifxLight.setColor(payload).then(() => callback());
+        } else {
+            lifxLight.setColor(payload);
+        }
     }
 })

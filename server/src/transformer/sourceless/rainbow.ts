@@ -12,7 +12,7 @@ export class Rainbow implements Transformer {
     setup(app: App) {
         this.t = 0;
         this.interval = setInterval(() => {
-            app.lights.forEach(light => light.set({ hue: (this.t * 90) % 360, saturation: 100, brightness: 100 }));
+            app.lights.forEach(light => light.setColor({ color: { hue: (this.t * 90) % 360, saturation: 100, brightness: 100 }}));
             this.t++;
         }, 250);
     }

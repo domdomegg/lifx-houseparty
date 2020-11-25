@@ -79,10 +79,18 @@ interface Teardownable {
     teardown: (app: App) => void;
 }
 
+interface HSBKColor {
+    hue: number;
+    saturation: number;
+    brightness: number;
+    kelvin?: number;
+}
+
+type Waveform = 'SAW' | 'SINE' | 'HALF_SINE' | 'TRIANGLE' | 'PULSE';
+
 export interface Light {
-    type: string;
-    raw?: any;
-    set(value: { hue: number, saturation: number, brightness: number, duration?: number }, callback?: () => void): void;
+    setColor(params: { color: HSBKColor, duration?: number, callback?: () => void }): void;
+    setWaveform(params: { fromColor?: HSBKColor, toColor: HSBKColor, transient: boolean, period: number, cycles: number, skewRatio: number, waveform: Waveform, callback?: () => void }): void;
 }
 
 export interface Source extends Setupable, Teardownable {

@@ -10,19 +10,27 @@ export class App {
     private bindings: Bindings = { transformers: {}, sources: {} } 
 
     setup(setupable: Setupable) {
+        if (!(this instanceof App)) throw new Error('this is not an App, instead is ' + this);
+
         setupable.setup(this);
     }
 
     teardown(teardownable: Teardownable) {
+        if (!(this instanceof App)) throw new Error('this is not an App, instead is ' + this);
+
         teardownable.teardown(this);
     }
 
     addLight(light: Light) {
+        if (!(this instanceof App)) throw new Error('this is not an App, instead is ' + this);
+
         this.lights.push(light);
         if (this.transformer.onLightConnect) this.transformer.onLightConnect(this, light);
     }
 
     setTransformer(key: string) {
+        if (!(this instanceof App)) throw new Error('this is not an App, instead is ' + this);
+
         const transformer = this.bindings.transformers[key];
         if (!transformer) throw new Error('Transformer ' + key + ' not found');
 
@@ -35,10 +43,14 @@ export class App {
     }
 
     bindTransformer(transformer: Transformer) {
+        if (!(this instanceof App)) throw new Error('this is not an App, instead is ' + this);
+
         this.bindings.transformers[transformer.key] = transformer;
     }
 
     setSource(key: string) {
+        if (!(this instanceof App)) throw new Error('this is not an App, instead is ' + this);
+
         const source = this.bindings.sources[key];
         if (!source) throw new Error('Source ' + key + ' not found');
 
@@ -51,10 +63,14 @@ export class App {
     }
 
     bindSource(source: Source) {
+        if (!(this instanceof App)) throw new Error('this is not an App, instead is ' + this);
+
         this.bindings.sources[source.key] = source;
     }
 
     startServer() {
+        if (!(this instanceof App)) throw new Error('this is not an App, instead is ' + this);
+
         const app = express();
         const bodyParser = require('body-parser');
         app.use(bodyParser.json());
@@ -69,9 +85,25 @@ export class App {
             res.send({ source: this.source.key, transformer: this.transformer.key });
         });
 
+        app.put('/source', (req, res) => {
+            this.setSource(req.body.key);
+            res.send({ source: this.source.key, transformer: this.transformer.key });
+        });
+
+        app.post('/source/data', (req, res) => {
+            if (this.source.onData) this.source.onData(this, req.body);
+            res.send({ source: this.source.key, transformer: this.transformer.key });
+        });
+
         app.listen(4000, () => {
             console.log(`Server started at http://localhost:4000`);
         });
+    }
+
+    handleBeat() {
+        if (!(this instanceof App)) throw new Error('this is not an App, instead is ' + this);
+
+        if (this.transformer.handleBeat) this.transformer.handleBeat(this)
     }
 }
 
@@ -103,6 +135,7 @@ export interface Light {
 
 export interface Source extends Setupable, Teardownable {
     key: string;
+    onData?: (app: App, data: any) => void;
 }
 
 export interface Transformer extends Setupable, Teardownable {

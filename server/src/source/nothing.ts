@@ -1,4 +1,4 @@
-import { App, Source } from '../app';
+import { App, Source } from '../types';
 
 export class Nothing implements Source {
     key: string = 'nothing';

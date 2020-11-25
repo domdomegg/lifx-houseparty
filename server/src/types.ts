@@ -3,8 +3,9 @@ import type { App } from './app';
 export { App };
 
 export interface Bindings {
-    transformers: { [key: string]: Transformer },
     sources: { [key: string]: Source }
+    transformers: { [key: string]: Transformer },
+    sinks: { [key: string]: Sink },
 }
 
 export interface Setupable {
@@ -39,5 +40,10 @@ export interface Transformer extends Setupable, Teardownable {
     handleBeat?: (app: App) => void;
     onLightConnect?: (app: App, light: Light) => void;
     onLightDisconnect?: (app: App, light: Light) => void;
+    onData?: (app: App, data: any) => void;
+}
+
+export interface Sink extends Setupable, Teardownable {
+    key: string;
     onData?: (app: App, data: any) => void;
 }

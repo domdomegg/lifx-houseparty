@@ -1,4 +1,4 @@
-import { App, Transformer, Light, Waveform } from '../../app';
+import { App, Transformer, Light, Waveform } from '../../types';
 
 export class Strobe implements Transformer {
     static key: string = 'strobe';

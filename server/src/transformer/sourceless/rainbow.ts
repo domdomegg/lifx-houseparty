@@ -1,4 +1,4 @@
-import { App, Transformer } from '../../app';
+import { App, Transformer } from '../../types';
 
 export class Rainbow implements Transformer {
     static key: string = 'rainbow';

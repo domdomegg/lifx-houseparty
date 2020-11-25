@@ -1,7 +1,10 @@
 import { Client as LifxClient, Light as LifxLight } from 'lifx-lan-client';
-import { App, Light } from '../app';
+import { App, Light } from '../types';
 
 export class Lifx {
+    static key: string = 'lifx';
+    key: string = Lifx.key;
+
     private client: LifxClient;
 
     setup(app: App) {

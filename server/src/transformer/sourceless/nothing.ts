@@ -1,4 +1,4 @@
-import { App, Transformer } from '../../app';
+import { App, Transformer } from '../../types';
 
 export class Nothing implements Transformer {    
     static key: string = 'nothing';

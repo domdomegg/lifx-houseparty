@@ -1,4 +1,4 @@
-import { App, Source } from '../app';
+import { App, Source } from '../types';
 
 export class Bpm implements Source {
     static key: string = 'bpm';

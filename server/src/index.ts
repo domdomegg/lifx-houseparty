@@ -9,7 +9,7 @@ import { Strobe } from './transformer/sourceless/strobe';
 
 const app = new App();
 
-app.setup(new Lifx());
+app.bindSink(new Lifx());
 
 app.bindTransformer(new Nothing());
 app.bindTransformer(new Rainbow());
@@ -19,6 +19,7 @@ app.bindTransformer(new RainbowBeats());
 app.bindSource(new Bpm());
 app.bindSource(new SpotifyBeats());
 
+app.enableSink(Lifx.key);
 app.setTransformer(RainbowBeats.key);
 app.setSource(SpotifyBeats.key);
 

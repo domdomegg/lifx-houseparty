@@ -1,12 +1,13 @@
 import express from 'express';
-import { Nothing as NothingTransformer } from './transformer/sourceless/nothing';
-import { Nothing as NothingSource } from './source/nothing';
+import cors from 'cors';
+import { Nothing } from './nothing';
 import { Light, Source, Transformer, Sink, Bindings, Setupable, Teardownable } from './types';
 
 export class App {
-    lights: Light[] = [];
-    private transformer: Transformer = new NothingTransformer();
-    private source: Source = new NothingSource();
+    lights: readonly Light[] = [];
+    private transformer: Transformer = new Nothing();
+    private source: Source = new Nothing();
+    private sinks: Sink[] = [];
 
     private bindings: Bindings = { sources: {}, transformers: {}, sinks: {} } 
 
@@ -25,8 +26,17 @@ export class App {
     addLight(light: Light) {
         if (!(this instanceof App)) throw new Error('this is not an App, instead is ' + this);
 
-        this.lights.push(light);
+        (this.lights as Light[]).push(light);
         if (this.transformer.onLightConnect) this.transformer.onLightConnect(this, light);
+    }
+
+    removeLightsBySink(sink: string) {
+        if (!(this instanceof App)) throw new Error('this is not an App, instead is ' + this);
+
+        const lightsToRemove = this.lights.filter(light => light.createdBySink == sink);
+        if (this.transformer.onLightDisconnect) lightsToRemove.forEach(light => this.transformer.onLightDisconnect(this, light));
+
+        (this.lights as Light[]) = this.lights.filter(light => light.createdBySink !== sink);
     }
 
     setSource(key: string) {
@@ -36,7 +46,7 @@ export class App {
         if (!source) throw new Error('Source ' + key + ' not found');
 
         const oldSource = this.source;
-        this.source = new NothingSource();
+        this.source = new Nothing();
         oldSource.teardown(this);
         
         source.setup(this);
@@ -56,7 +66,7 @@ export class App {
         if (!transformer) throw new Error('Transformer ' + key + ' not found');
 
         const oldTransformer = this.transformer;
-        this.transformer = new NothingTransformer();
+        this.transformer = new Nothing();
         oldTransformer.teardown(this);
         
         transformer.setup(this);
@@ -76,15 +86,17 @@ export class App {
         if (!sink) throw new Error('Sink ' + key + ' not found');
 
         sink.setup(this);
+        this.sinks.push(sink);
     }
 
     disableSink(key: string) {
         if (!(this instanceof App)) throw new Error('this is not an App, instead is ' + this);
 
-        const sink = this.bindings.sources[key];
+        const sink = this.bindings.sinks[key];
         if (!sink) throw new Error('Sink ' + key + ' not found');
 
         sink.teardown(this);
+        this.sinks = this.sinks.filter(s => s.key !== key);
     }
 
     bindSink(sink: Sink) {
@@ -98,26 +110,49 @@ export class App {
 
         const app = express();
         const bodyParser = require('body-parser');
+        app.use(cors());
         app.use(bodyParser.json());
 
-        app.put('/transformer', (req, res) => {
-            this.setTransformer(req.body.key);
-            res.send({ source: this.source.key, transformer: this.transformer.key });
-        });
-
-        app.post('/transformer/data', (req, res) => {
-            if (this.transformer.onData) this.transformer.onData(this, req.body);
-            res.send({ source: this.source.key, transformer: this.transformer.key });
-        });
+        app.get('/', (req, res) => {
+            res.send({
+                bindingKeys: {
+                    sources: Object.keys(this.bindings.sources),
+                    transformers: Object.keys(this.bindings.transformers),
+                    sinks: Object.keys(this.bindings.sinks)
+                },
+                source: this.source.key,
+                transformer: this.transformer.key,
+                sinks: this.sinks.map(s => s.key)
+            })
+        })
 
         app.put('/source', (req, res) => {
             this.setSource(req.body.key);
-            res.send({ source: this.source.key, transformer: this.transformer.key });
+            res.send();
         });
 
         app.post('/source/data', (req, res) => {
             if (this.source.onData) this.source.onData(this, req.body);
-            res.send({ source: this.source.key, transformer: this.transformer.key });
+            res.send();
+        });
+
+        app.put('/transformer', (req, res) => {
+            this.setTransformer(req.body.key);
+            res.send();
+        });
+
+        app.post('/transformer/data', (req, res) => {
+            if (this.transformer.onData) this.transformer.onData(this, req.body);
+            res.send();
+        });
+
+        app.put('/sink', (req, res) => {
+            if (req.body.enabled) {
+                this.enableSink(req.body.key)
+            } else {
+                this.disableSink(req.body.key);
+            }
+            res.send();
         });
 
         app.listen(4000, () => {

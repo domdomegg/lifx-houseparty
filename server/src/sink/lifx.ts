@@ -19,11 +19,13 @@ export class Lifx {
     }
 
     teardown(app: App) {
+        app.removeLightsBySink(this.key);
         this.client.destroy();
     }
 }
 
 const transformLight = (lifxLight: LifxLight): Light => ({
+    createdBySink: Lifx.key,
     setColor: ({ color: { hue, saturation, brightness, kelvin }, duration, callback }) => {
         lifxLight.color(hue, saturation, brightness, kelvin, duration, callback);
     },

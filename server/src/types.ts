@@ -26,6 +26,7 @@ export interface HSBKColor {
 export type Waveform = 'SAW' | 'SINE' | 'HALF_SINE' | 'TRIANGLE' | 'PULSE';
 
 export interface Light {
+    createdBySink: string;
     setColor(params: { color: HSBKColor, duration?: number, callback?: () => void }): void;
     setWaveform(params: { fromColor?: HSBKColor, toColor: HSBKColor, transient?: boolean, period: number, cycles?: number, skewRatio?: number, waveform: Waveform, callback?: () => void }): void;
 }

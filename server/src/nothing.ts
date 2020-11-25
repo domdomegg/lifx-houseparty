@@ -1,6 +1,6 @@
-import { App, Transformer } from '../../types';
+import { App, Source, Transformer } from './types';
 
-export class Nothing implements Transformer {    
+export class Nothing implements Source, Transformer {    
     static key: string = 'nothing';
     key: string = Nothing.key;
 

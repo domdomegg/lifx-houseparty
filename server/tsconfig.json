@@ -5,10 +5,10 @@
     "target": "es6",
     "noImplicitAny": true,
     "moduleResolution": "node",
-    "sourceMap": true,
-    "outDir": "dist"
+    "skipLibCheck": true,
+    "outDir": "dist",
   },
   "include": [
-    "src/**/*"
-  ]
+    "src/**/*",
+  ],
 }

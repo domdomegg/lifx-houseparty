@@ -8,11 +8,11 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     strategy:
       matrix:
-        node-version: [18]
+        node-version: [22]
 
     steps:
       - name: Checkout ${{ github.sha }}
